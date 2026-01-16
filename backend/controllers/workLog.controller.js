@@ -19,8 +19,6 @@ export const getAiSummary = async (req, res) => {
     const end = req.query.end || req.body.end;
     const userId = req.user.id;
 
-    console.log("Generating summary for user:", userId, "Range:", start, end); // Debug log
-
     if (!start || !end) {
       return res.status(400).json({ message: "Start and end dates are required" });
     }
@@ -42,7 +40,6 @@ export const getAiSummary = async (req, res) => {
 
     // Updated model to one commonly supported by the free router
     const modelName = process.env.HF_MODEL_ID || "meta-llama/Meta-Llama-3-8B-Instruct";
-    console.log("Calling HF API with model:", modelName);
 
     const completion = await ai.chat.completions.create({
       model: modelName,
@@ -50,8 +47,6 @@ export const getAiSummary = async (req, res) => {
       max_tokens: 512,
       temperature: 0.7,
     });
-
-    console.log("HF API Response received"); // Debug log
 
     res.status(200).json({ summary: completion.choices[0].message.content });
   } catch (error) {

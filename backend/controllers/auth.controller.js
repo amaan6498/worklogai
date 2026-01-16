@@ -4,7 +4,6 @@ import User from "../models/User.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-console.log("JWT_SECRET in auth:", process.env.JWT_SECRET);
 export const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;

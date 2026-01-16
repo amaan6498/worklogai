@@ -7,8 +7,6 @@ import connectDB from "./config/db.js";
 connectDB();
 
 const PORT = process.env.PORT || 5000;
-console.log("JWT_SECRET in server:", process.env.JWT_SECRET);
-
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
