@@ -1,5 +1,5 @@
 import * as React from "react"
-import { type DialogProps } from "@radix-ui/react-dialog"
+
 import { Command as CommandPrimitive } from "cmdk"
 import { Search } from "lucide-react"
 
@@ -21,7 +21,7 @@ const Command = React.forwardRef<
 ))
 Command.displayName = CommandPrimitive.displayName
 
-const CommandDialog = ({ children: _children, ..._props }: DialogProps) => {
+const CommandDialog = () => {
     return (
         // Reusing the cmdk dialog behavior if needed, or stick to simple implementation
         // For now we just implement the primitives needed for MultiSelect/Search
