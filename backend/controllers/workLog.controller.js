@@ -57,6 +57,32 @@ export const getAiSummary = async (req, res) => {
 };
 
 /**
+ * Helper to generate tags from content using AI.
+ */
+const generateTags = async (content) => {
+  try {
+    const prompt = `Extract 1-3 relevant tags (e.g., #Frontend, #BugFix, #Meeting) for this work log. Return ONLY the tags separated by commas, no other text.\n\nLog: "${content}"\n\nTags:`;
+
+    // Updated model to one commonly supported by the free router
+    const modelName = process.env.HF_MODEL_ID || "meta-llama/Meta-Llama-3-8B-Instruct";
+
+    const completion = await ai.chat.completions.create({
+      model: modelName,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 50,
+      temperature: 0.3,
+    });
+
+    const text = completion.choices[0].message.content.trim();
+    // Clean up tags: remove #, split by comma, trim whitespace
+    return text.split(',').map(tag => tag.replace(/#/g, '').trim()).filter(t => t.length > 0);
+  } catch (error) {
+    console.error("AI Tagging Error:", error);
+    return []; // Fail gracefully with no tags
+  }
+};
+
+/**
  * Add or update a work log for a specific date.
  * If a log exists for the date, it adds the new task to it.
  * Otherwise, it creates a new log entry.
@@ -70,9 +96,13 @@ export const addOrUpdateLog = async (req, res) => {
       return res.status(400).json({ message: "Date and content are required" });
     }
 
+
+    // Generate tags using AI
+    const tags = await generateTags(content);
+
     const log = await WorkLog.findOneAndUpdate(
       { userId, date: new Date(date) },
-      { $push: { tasks: { content } } },
+      { $push: { tasks: { content, tags } } },
       { upsert: true, new: true }
     );
 
@@ -212,11 +242,16 @@ export const getSummary = async (req, res) => {
 export const updateTask = async (req, res) => {
   try {
     const { logId, taskId } = req.params; // Document ID and Task ID
-    const { content } = req.body;
+    const { content, tags } = req.body;
+
+    const updateFields = {
+      "tasks.$.content": content
+    };
+    if (tags !== undefined) updateFields["tasks.$.tags"] = tags;
 
     const log = await WorkLog.findOneAndUpdate(
       { _id: logId, "tasks._id": taskId },
-      { $set: { "tasks.$.content": content } }, // Updates specific task in array
+      { $set: updateFields },
       { new: true }
     );
 
@@ -280,19 +315,27 @@ export const searchLogs = async (req, res) => {
 
     const logs = await WorkLog.find({
       userId,
-      "tasks.content": { $regex: q, $options: "i" },
+      $or: [
+        { "tasks.content": { $regex: q, $options: "i" } },
+        { "tasks.tags": { $regex: q, $options: "i" } }
+      ]
     }).sort({ date: -1 });
 
     // Flatten results to show specific matching tasks
     const results = [];
     logs.forEach((log) => {
       log.tasks.forEach((task) => {
-        if (task.content.toLowerCase().includes(q.toLowerCase())) {
+        // Match content OR tags
+        const contentMatch = task.content.toLowerCase().includes(q.toLowerCase());
+        const tagMatch = task.tags && task.tags.some(tag => tag.toLowerCase().includes(q.toLowerCase()));
+
+        if (contentMatch || tagMatch) {
           results.push({
             _id: task._id,
             logId: log._id,
             date: log.date,
             content: task.content,
+            tags: task.tags || [],
             createdAt: task.createdAt,
           });
         }

@@ -104,6 +104,15 @@ export function NavbarSearch({ onSelectDate, className }: NavbarSearchProps) {
                                     <p className="text-sm text-zinc-700 dark:text-zinc-200 line-clamp-2">
                                         {item.content}
                                     </p>
+                                    {item.tags && item.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 pt-1">
+                                            {item.tags.map((tag: string, i: number) => (
+                                                <span key={i} className="text-[9px] uppercase font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">
+                                                    #{tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </button>
                             ))}
                         </div>

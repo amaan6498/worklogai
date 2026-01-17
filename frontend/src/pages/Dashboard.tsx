@@ -21,13 +21,15 @@ import {
   Sun,
   Edit2,
   Activity,
-  Search
+  Search,
+  X
 } from 'lucide-react';
 import { ActivityCalendar } from 'react-activity-calendar';
 import { Tooltip } from 'react-tooltip';
 import { AiSummaryModal } from "@/components/AiSummaryModal";
 import { NavbarSearch } from "@/components/NavbarSearch";
 import { useTheme } from "@/components/theme-provider";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +38,7 @@ import { format, eachDayOfInterval } from "date-fns";
 interface Task {
   _id: string;
   content: string;
+  tags?: string[];
   createdAt: string;
 }
 
@@ -60,6 +63,8 @@ export default function Dashboard() {
   // Edit Modal States
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editContent, setEditContent] = useState("");
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [editNewTag, setEditNewTag] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<string>("");
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
@@ -159,6 +164,8 @@ export default function Dashboard() {
   const openEditModal = (task: Task) => {
     setEditingTaskId(task._id);
     setEditContent(task.content);
+    setEditTags(task.tags || []);
+    setEditNewTag("");
     setIsEditModalOpen(true);
   };
 
@@ -166,7 +173,8 @@ export default function Dashboard() {
     if (!editContent.trim() || !currentLogId || !editingTaskId) return;
     try {
       const { data } = await api.put(`/worklogs/task/${currentLogId}/${editingTaskId}`, {
-        content: editContent
+        content: editContent,
+        tags: editTags
       });
       setTasks(data.tasks);
       setIsEditModalOpen(false);
@@ -301,14 +309,14 @@ export default function Dashboard() {
                 onClick={() => setIsActivityModalOpen(true)}
                 className="rounded-full px-6 border-zinc-300 dark:border-zinc-800 text-[10px] font-bold uppercase tracking-widest h-10 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
               >
-                <Activity className="w-3 h-3 mr-2 text-green-500" /> Activity
+                <Activity className="w-3 h-3 mr-2 text-primary" /> Activity
               </Button>
               <Button
                 variant="outline"
                 onClick={handleExport}
                 className="rounded-full px-6 border-zinc-300 dark:border-zinc-800 text-[10px] font-bold uppercase tracking-widest h-10 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
               >
-                <FileDown className="w-3 h-3 mr-2" /> Export xlsx
+                <FileDown className="w-3 h-3 mr-2 text-primary" /> Export xlsx
               </Button>
             </div>
           </header>
@@ -345,7 +353,7 @@ export default function Dashboard() {
               onClick={handleExport}
               className="rounded-full px-4 md:px-6 border-zinc-300 dark:border-zinc-800 text-[10px] font-bold uppercase tracking-widest h-10 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors flex-grow md:flex-grow-0"
             >
-              <FileDown className="w-3 h-3 mr-2" /> Export
+              <FileDown className="w-3 h-3 mr-2 text-primary" /> Export
             </Button>
           </div>
 
@@ -369,9 +377,20 @@ export default function Dashboard() {
                     </span>
                     <div className="flex-1">
                       <div className="flex justify-between items-start gap-4">
-                        <p className="text-zinc-800 dark:text-zinc-200 text-xl tracking-tight leading-snug group-hover:translate-x-1 transition-transform">
-                          {task.content}
-                        </p>
+                        <div className="space-y-1">
+                          <p className="text-zinc-800 dark:text-zinc-200 text-xl tracking-tight leading-snug group-hover:translate-x-1 transition-transform">
+                            {task.content}
+                          </p>
+                          {task.tags && task.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {task.tags.map((tag, i) => (
+                                <span key={i} className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary/10 text-primary hover:bg-primary/20 uppercase tracking-wider">
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -388,8 +407,6 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-
-          {/* Activity Heatmap (Moved Here) */}
 
           {/* AI Summary Section */}
           {aiSummary && (
@@ -429,6 +446,55 @@ export default function Dashboard() {
               onChange={(e) => setEditContent(e.target.value)}
               className="min-h-[180px] bg-zinc-50 dark:bg-zinc-900/50 border-none rounded-[2rem] p-6 text-xl resize-none focus-visible:ring-1 focus-visible:ring-primary/20 shadow-inner"
             />
+
+            <div className="mt-6 space-y-3">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Manage Tags</label>
+              <div className="flex gap-2">
+                <Input
+                  value={editNewTag}
+                  onChange={(e) => setEditNewTag(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && editNewTag.trim()) {
+                      if (!editTags.includes(editNewTag.trim())) {
+                        setEditTags([...editTags, editNewTag.trim()]);
+                        setEditNewTag("");
+                      }
+                    }
+                  }}
+                  placeholder="Add a new tag..."
+                  className="bg-zinc-50 dark:bg-zinc-900/50 border-none rounded-xl h-9 text-sm"
+                />
+                <Button
+                  onClick={() => {
+                    if (editNewTag.trim() && !editTags.includes(editNewTag.trim())) {
+                      setEditTags([...editTags, editNewTag.trim()]);
+                      setEditNewTag("");
+                    }
+                  }}
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-xl shrink-0 h-9 w-9 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                >
+                  <Plus className="w-4 h-4 text-zinc-500" />
+                </Button>
+              </div>
+
+              {editTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {editTags.map((tag, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold border-transparent bg-primary/10 text-primary uppercase tracking-wider">
+                      #{tag}
+                      <button
+                        onClick={() => setEditTags(prev => prev.filter((_, idx) => idx !== i))}
+                        className="ml-1 hover:text-red-500 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <DialogFooter className="flex gap-4 sm:justify-end">

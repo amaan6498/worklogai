@@ -16,6 +16,7 @@ const workLogSchema = new mongoose.Schema(
     tasks: [
       {
         content: { type: String, required: true },
+        tags: [{ type: String }],
         createdAt: { type: Date, default: Date.now },
       },
     ],
