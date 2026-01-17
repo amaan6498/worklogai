@@ -7,7 +7,9 @@ import {
     getLogsByRange,
     getSummary,
     updateTask,
-    getAiSummary
+    getAiSummary,
+    getWorklogStats,
+    searchLogs
 } from '../controllers/workLog.controller.js';
 
 const router = express.Router();
@@ -21,5 +23,7 @@ router.get("/ai-summary", getAiSummary);
 router.get("/summary", getSummary)
 router.put("/task/:logId/:taskId", updateTask);
 router.post("/ai-summary", getAiSummary);
+router.get("/stats", getWorklogStats);
+router.get("/search", searchLogs);
 
 export default router;

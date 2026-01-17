@@ -225,3 +225,82 @@ export const updateTask = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+/**
+ * Get worklog stats for the heatmap (last 365 days).
+ * Returns array of { date: "YYYY-MM-DD", count: number, level: number }
+ */
+export const getWorklogStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const today = new Date();
+    const startOfYear = new Date(today.getFullYear(), 0, 1);
+    const endOfYear = new Date(today.getFullYear(), 11, 31);
+
+    const logs = await WorkLog.find({
+      userId,
+      date: { $gte: startOfYear, $lte: endOfYear },
+    });
+
+    const stats = logs.map((log) => {
+      const count = log.tasks.length;
+      // Defines level based on task count: 0 (0), 1 (1-2), 2 (3-4), 3 (5-6), 4 (7+)
+      let level = 0;
+      if (count === 0) level = 0;
+      else if (count <= 2) level = 1;
+      else if (count <= 4) level = 2;
+      else if (count <= 6) level = 3;
+      else level = 4;
+
+      return {
+        date: log.date.toISOString().split("T")[0],
+        count,
+        level,
+      };
+    });
+
+    res.status(200).json(stats);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Search work logs by content.
+ * Query Params: q (string)
+ */
+export const searchLogs = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const userId = req.user.id;
+
+    if (!q || q.trim() === "") {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    const logs = await WorkLog.find({
+      userId,
+      "tasks.content": { $regex: q, $options: "i" },
+    }).sort({ date: -1 });
+
+    // Flatten results to show specific matching tasks
+    const results = [];
+    logs.forEach((log) => {
+      log.tasks.forEach((task) => {
+        if (task.content.toLowerCase().includes(q.toLowerCase())) {
+          results.push({
+            _id: task._id,
+            logId: log._id,
+            date: log.date,
+            content: task.content,
+            createdAt: task.createdAt,
+          });
+        }
+      });
+    });
+
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

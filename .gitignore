@@ -6,3 +6,4 @@ build
 .vscode
 coverage
 tokenns.txt
+DEPLOYMENT.md
