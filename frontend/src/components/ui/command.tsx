@@ -21,7 +21,7 @@ const Command = React.forwardRef<
 ))
 Command.displayName = CommandPrimitive.displayName
 
-const CommandDialog = ({ children, ...props }: DialogProps) => {
+const CommandDialog = ({ children: _children, ..._props }: DialogProps) => {
     return (
         // Reusing the cmdk dialog behavior if needed, or stick to simple implementation
         // For now we just implement the primitives needed for MultiSelect/Search
