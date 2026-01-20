@@ -15,28 +15,61 @@ const ai = new OpenAI({
 export const getAiSummary = async (req, res) => {
   try {
     // Support both GET (query) and POST (body)
-    const start = req.query.start || req.body.start;
-    const end = req.query.end || req.body.end;
+    const startStr = req.query.start || req.body.start;
+    const endStr = req.query.end || req.body.end;
     const userId = req.user.id;
 
-    if (!start || !end) {
+    if (!startStr || !endStr) {
       return res.status(400).json({ message: "Start and end dates are required" });
     }
 
+    const startDate = new Date(startStr);
+    const endDate = new Date(endStr);
+
     const logs = await WorkLog.find({
       userId,
-      date: { $gte: new Date(start), $lte: new Date(end) },
+      date: { $gte: startDate, $lte: endDate },
     }).sort({ date: 1 });
 
+    // 1. Identify Missing Dates
+    const missingDates = [];
+    let currentDate = new Date(startDate);
+
+    // Normalize time to comparse dates accurately
+    currentDate.setHours(0, 0, 0, 0);
+    const endDateTime = new Date(endDate).setHours(0, 0, 0, 0);
+
+    // Create a Set of existing log dates for O(1) lookup
+    const existingDates = new Set(
+      logs.map(l => l.date.toISOString().split('T')[0])
+    );
+
+    while (currentDate.getTime() <= endDateTime) {
+      const dateString = currentDate.toISOString().split('T')[0];
+      if (!existingDates.has(dateString)) {
+        missingDates.push(dateString);
+      }
+      // Next day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
     if (logs.length === 0) {
-      return res.status(200).json({ summary: "No logs found for the selected date range." });
+      // If absolutely no logs, just return a message (or let AI generate a "nothing done" summary if preferred)
+      return res.status(200).json({ summary: `No logs found from ${startStr} to ${endStr}.` });
     }
 
     const logsText = logs
       .map((log) => `Date: ${log.date.toISOString().split("T")[0]}\nTasks: ${log.tasks.map((t) => t.content).join(", ")}`)
       .join("\n\n");
 
-    const prompt = `Summarize the following work logs into a concise weekly report highlighting key achievements and progress:\n\n${logsText}\n\nSummary:`;
+    // 2. Construct Prompt with Missing Dates Info
+    let prompt = `Summarize the following work logs into a concise weekly report highlighting key achievements and progress:\n\n${logsText}\n\n`;
+
+    if (missingDates.length > 0) {
+      prompt += `IMPORTANT: The following dates had NO recorded activity: ${missingDates.join(", ")}. Please explicitly mention that no work was logged on these dates in the summary.\n\n`;
+    }
+
+    prompt += `Summary:`;
 
     // Updated model to one commonly supported by the free router
     const modelName = process.env.HF_MODEL_ID || "meta-llama/Meta-Llama-3-8B-Instruct";
@@ -96,19 +129,46 @@ export const addOrUpdateLog = async (req, res) => {
       return res.status(400).json({ message: "Date and content are required" });
     }
 
-
-    // Generate tags using AI
-    const tags = await generateTags(content);
-
+    // 2. Immediate Save (Prioritize UI responsiveness)
+    // We let MongoDB generate the _id for the new task automatically.
     const log = await WorkLog.findOneAndUpdate(
       { userId, date: new Date(date) },
-      { $push: { tasks: { content, tags } } },
+      { $push: { tasks: { content, tags: [], createdAt: new Date() } } },
       { upsert: true, new: true }
     );
 
+    // 3. Send Response IMMEDIATELY
     res.status(200).json(log);
+
+    // 4. Background Process: Generate Tags & Update
+    // Identify the task we just added (it will be the last one in the list)
+    if (log && log.tasks && log.tasks.length > 0) {
+      const newTask = log.tasks[log.tasks.length - 1];
+      const taskId = newTask._id;
+
+      generateTags(content)
+        .then(async (tags) => {
+          if (tags && tags.length > 0) {
+            try {
+              await WorkLog.updateOne(
+                { "tasks._id": taskId },
+                { $set: { "tasks.$.tags": tags } }
+              );
+              console.log(`[Background] Tags added for task ${taskId}:`, tags);
+            } catch (err) {
+              console.error("[Background] Failed to update tags:", err);
+            }
+          }
+        })
+        .catch((err) => console.error("[Background] Tag generation failed:", err));
+    }
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    if (!res.headersSent) {
+      res.status(500).json({ message: error.message });
+    } else {
+      console.error("Error in addOrUpdateLog:", error);
+    }
   }
 };
 
