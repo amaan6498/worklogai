@@ -22,7 +22,12 @@ import {
   Edit2,
   Activity,
   Search,
-  X
+  X,
+  Mic,
+  MicOff,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { ActivityCalendar } from 'react-activity-calendar';
 import { Tooltip } from 'react-tooltip';
@@ -59,6 +64,8 @@ export default function Dashboard() {
   // UI States
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isMobileCalendarOpen, setIsMobileCalendarOpen] = useState(false);
 
   // Edit Modal States
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -75,6 +82,46 @@ export default function Dashboard() {
     setAiSummary(summary);
     // Optional: scroll to bottom
     setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
+  };
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Voice input is not supported in this browser.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      toast.success("Listening...");
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setContent(prev => (prev ? prev + ' ' + transcript : transcript));
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false);
+      toast.error("Voice recognition failed.");
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
   };
 
   /**
@@ -99,6 +146,9 @@ export default function Dashboard() {
       setLoading(false);
     }
   }, [date]);
+
+  const handlePrevDay = () => date && setDate(new Date(date.setDate(date.getDate() - 1)));
+  const handleNextDay = () => date && setDate(new Date(date.setDate(date.getDate() + 1)));
 
   useEffect(() => {
     fetchLogs();
@@ -297,10 +347,21 @@ export default function Dashboard() {
         <section className="space-y-6 md:space-y-10">
           <header className="flex justify-between items-end">
             <div>
-              <p className="text-primary font-bold text-[10px] uppercase tracking-[0.3em] mb-2">Timeline</p>
-              <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter italic">
-                {date ? format(date, 'MMMM d, yyyy') : '...'}
-              </h2>
+      
+              <div>
+                <p className="text-primary font-bold text-[10px] uppercase tracking-[0.3em] mb-2">Timeline</p>
+                <div className="flex items-center gap-4">
+                  <div
+                    onClick={() => window.innerWidth < 768 && setIsMobileCalendarOpen(true)}
+                    className="group flex items-center gap-2 md:pointer-events-none cursor-pointer active:opacity-70 transition-opacity"
+                  >
+                    <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter italic">
+                      {date ? format(date, 'MMMM d, yyyy') : '...'}
+                    </h2>
+                    <ChevronDown className="w-6 h-6 text-zinc-300 md:hidden group-hover:text-primary transition-colors" />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="hidden md:flex gap-4">
@@ -329,13 +390,28 @@ export default function Dashboard() {
               placeholder="Record a new milestone..."
               className="min-h-[120px] md:min-h-[160px] bg-white dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-6 md:p-8 text-lg md:text-xl resize-none placeholder:text-zinc-400 dark:placeholder:text-zinc-700 focus-visible:ring-1 focus-visible:ring-zinc-300 dark:focus-visible:ring-zinc-800 shadow-sm dark:shadow-inner"
             />
-            <Button
-              onClick={handleAddTask}
-              disabled={!content.trim() || loading}
-              className="absolute bottom-4 right-4 md:bottom-6 md:right-6 rounded-full w-12 h-12 md:w-14 md:h-14 p-0 bg-primary shadow-2xl shadow-primary/40 hover:scale-110 active:scale-95 transition-all"
-            >
-              {loading ? <Loader2 className="animate-spin" /> : <Plus className="w-6 h-6 md:w-8 md:h-8 text-white" />}
-            </Button>
+
+            <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleVoiceInput}
+                className={`rounded-full w-12 h-12 md:w-14 md:h-14 border-none shadow-lg transition-all ${isListening
+                  ? "bg-red-50 text-red-500 hover:bg-red-100 animate-pulse"
+                  : "bg-white dark:bg-zinc-800 text-zinc-400 hover:text-primary hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                  }`}
+              >
+                {isListening ? <MicOff className="w-5 h-5 md:w-6 md:h-6" /> : <Mic className="w-5 h-5 md:w-6 md:h-6" />}
+              </Button>
+
+              <Button
+                onClick={handleAddTask}
+                disabled={!content.trim() || loading}
+                className="rounded-full w-12 h-12 md:w-14 md:h-14 p-0 bg-primary shadow-2xl shadow-primary/40 hover:scale-110 active:scale-95 transition-all"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : <Plus className="w-6 h-6 md:w-8 md:h-8 text-white" />}
+              </Button>
+            </div>
           </div>
 
           {/* Action Buttons (Mobile Only) */}
@@ -561,6 +637,28 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* --- MOBILE CALENDAR MODAL --- */}
+      <Dialog open={isMobileCalendarOpen} onOpenChange={setIsMobileCalendarOpen}>
+        <DialogContent className="bg-white dark:bg-zinc-950 border-none rounded-[2.5rem] p-8 w-[90vw] max-w-sm shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">
+              Select Date
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400 font-light italic">
+              Jump to a specific day in your timeline.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(d) => { if (d) { setDate(d); setIsMobileCalendarOpen(false); } }}
+              className="rounded-md border border-zinc-100 dark:border-zinc-800 p-3 shadow-inner bg-zinc-50 dark:bg-zinc-900/50"
+            />
           </div>
         </DialogContent>
       </Dialog>
