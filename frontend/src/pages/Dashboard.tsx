@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Plus,
@@ -26,11 +26,9 @@ import {
   Mic,
   MicOff,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
-import { ActivityCalendar } from 'react-activity-calendar';
-import { Tooltip } from 'react-tooltip';
+} from "lucide-react";
+import { ActivityCalendar } from "react-activity-calendar";
+import { Tooltip } from "react-tooltip";
 import { AiSummaryModal } from "@/components/AiSummaryModal";
 import { NavbarSearch } from "@/components/NavbarSearch";
 import { useTheme } from "@/components/theme-provider";
@@ -52,14 +50,18 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   // Determine effective theme for calendar
-  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  const calendarTheme = theme === 'system' ? systemTheme : theme;
+  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+  const calendarTheme = theme === "system" ? systemTheme : theme;
 
   // Data States
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
   const [currentLogId, setCurrentLogId] = useState<string>("");
-  const [stats, setStats] = useState<Array<{ date: string; count: number; level: number }>>([]);
+  const [stats, setStats] = useState<
+    Array<{ date: string; count: number; level: number }>
+  >([]);
 
   // UI States
   const [content, setContent] = useState("");
@@ -81,7 +83,14 @@ export default function Dashboard() {
   const handleAiSummaryGenerated = (summary: string) => {
     setAiSummary(summary);
     // Optional: scroll to bottom
-    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
+    setTimeout(
+      () =>
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: "smooth",
+        }),
+      100,
+    );
   };
 
   const toggleVoiceInput = () => {
@@ -90,7 +99,9 @@ export default function Dashboard() {
       return;
     }
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast.error("Voice input is not supported in this browser.");
       return;
@@ -99,7 +110,7 @@ export default function Dashboard() {
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = 'en-US';
+    recognition.lang = "en-US";
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -108,7 +119,7 @@ export default function Dashboard() {
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      setContent(prev => (prev ? prev + ' ' + transcript : transcript));
+      setContent((prev) => (prev ? prev + " " + transcript : transcript));
     };
 
     recognition.onerror = (event: any) => {
@@ -132,7 +143,7 @@ export default function Dashboard() {
     if (!date) return;
     setLoading(true);
     try {
-      const formattedDate = format(date, 'yyyy-MM-dd');
+      const formattedDate = format(date, "yyyy-MM-dd");
       const { data } = await api.get(`/worklogs/date/${formattedDate}`);
 
       // Backend returns { _id, tasks: [...] }
@@ -147,9 +158,6 @@ export default function Dashboard() {
     }
   }, [date]);
 
-  const handlePrevDay = () => date && setDate(new Date(date.setDate(date.getDate() - 1)));
-  const handleNextDay = () => date && setDate(new Date(date.setDate(date.getDate() + 1)));
-
   useEffect(() => {
     fetchLogs();
   }, [fetchLogs]);
@@ -157,7 +165,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const { data } = await api.get('/worklogs/stats');
+        const { data } = await api.get("/worklogs/stats");
 
         // Generate the current year of dates
         const today = new Date();
@@ -165,8 +173,8 @@ export default function Dashboard() {
         const endOfYear = new Date(today.getFullYear(), 11, 31);
         const days = eachDayOfInterval({ start: startOfYear, end: endOfYear });
 
-        const filledData = days.map(day => {
-          const dateStr = format(day, 'yyyy-MM-dd');
+        const filledData = days.map((day) => {
+          const dateStr = format(day, "yyyy-MM-dd");
           // Find if we have api data for this day
           const log = data.find((d: any) => d.date === dateStr);
           if (log) {
@@ -179,7 +187,9 @@ export default function Dashboard() {
       } catch (error) {
         console.error("Failed to fetch stats", error);
         // Fallback to avoid crash
-        setStats([{ date: format(new Date(), 'yyyy-MM-dd'), count: 0, level: 0 }]);
+        setStats([
+          { date: format(new Date(), "yyyy-MM-dd"), count: 0, level: 0 },
+        ]);
       }
     };
     fetchStats();
@@ -192,10 +202,12 @@ export default function Dashboard() {
   const handleAddTask = async () => {
     if (!content.trim()) return;
     try {
-      const formattedDate = date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
-      const { data } = await api.post('/worklogs', {
+      const formattedDate = date
+        ? format(date, "yyyy-MM-dd")
+        : format(new Date(), "yyyy-MM-dd");
+      const { data } = await api.post("/worklogs", {
         date: formattedDate,
-        content: content.trim()
+        content: content.trim(),
       });
 
       setTasks(data.tasks);
@@ -222,10 +234,13 @@ export default function Dashboard() {
   const handleUpdateTask = async () => {
     if (!editContent.trim() || !currentLogId || !editingTaskId) return;
     try {
-      const { data } = await api.put(`/worklogs/task/${currentLogId}/${editingTaskId}`, {
-        content: editContent,
-        tags: editTags
-      });
+      const { data } = await api.put(
+        `/worklogs/task/${currentLogId}/${editingTaskId}`,
+        {
+          content: editContent,
+          tags: editTags,
+        },
+      );
       setTasks(data.tasks);
       setIsEditModalOpen(false);
       toast.success("Record updated");
@@ -241,11 +256,16 @@ export default function Dashboard() {
   const handleExport = async () => {
     try {
       toast.info("Preparing Excel document...");
-      const response = await api.get('/worklogs/summary', { responseType: 'blob' });
+      const response = await api.get("/worklogs/summary", {
+        responseType: "blob",
+      });
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `WorkLog_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      link.setAttribute(
+        "download",
+        `WorkLog_${format(new Date(), "yyyy-MM-dd")}.xlsx`,
+      );
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -266,10 +286,8 @@ export default function Dashboard() {
     navigate("/auth");
   };
 
-
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans transition-colors duration-500">
-
       {/* --- NAVIGATION --- */}
       <nav className="border-b border-zinc-200 dark:border-zinc-900 px-8 py-4 flex justify-between items-center sticky top-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md z-20">
         <h1 className="text-xs font-bold tracking-[0.4em] uppercase select-none shrink-0">
@@ -293,7 +311,11 @@ export default function Dashboard() {
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
             className="rounded-full w-9 h-9 text-zinc-400 hover:text-primary transition-colors"
           >
-            {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            {theme === "light" ? (
+              <Moon className="w-4 h-4" />
+            ) : (
+              <Sun className="w-4 h-4" />
+            )}
           </Button>
           <div className="w-[1px] h-4 bg-zinc-300 dark:bg-zinc-800 mx-1" />
           <Button
@@ -310,12 +332,17 @@ export default function Dashboard() {
       {/* Mobile Search Bar */}
       {isSearchOpen && (
         <div className="md:hidden border-b border-zinc-200 dark:border-zinc-900 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md p-4 sticky top-[73px] z-10 animate-in slide-in-from-top-2">
-          <NavbarSearch onSelectDate={(d) => { setDate(d); setIsSearchOpen(false); }} className="mx-0 max-w-none" />
+          <NavbarSearch
+            onSelectDate={(d) => {
+              setDate(d);
+              setIsSearchOpen(false);
+            }}
+            className="mx-0 max-w-none"
+          />
         </div>
       )}
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6 md:gap-12 p-4 md:p-8">
-
         {/* --- SIDEBAR --- */}
         <aside className="space-y-8 hidden md:block">
           <section className="bg-white dark:bg-zinc-900/40 p-4 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
@@ -331,7 +358,9 @@ export default function Dashboard() {
             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60 mb-4 flex items-center">
               <Sparkles className="w-3 h-3 mr-2 text-primary" /> Intelligence
             </h3>
-            <p className="text-sm font-light leading-relaxed mb-6">Review your monthly productivity patterns using AI synthesis.</p>
+            <p className="text-sm font-light leading-relaxed mb-6">
+              Review your monthly productivity patterns using AI synthesis.
+            </p>
             <Button
               onClick={handleAiSummary}
               className="w-full bg-primary text-white rounded-2xl py-6 hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20"
@@ -339,24 +368,25 @@ export default function Dashboard() {
               Generate Insight
             </Button>
           </Card>
-
-
         </aside>
 
         {/* --- MAIN CONTENT --- */}
         <section className="space-y-6 md:space-y-10">
           <header className="flex justify-between items-end">
             <div>
-      
               <div>
-                <p className="text-primary font-bold text-[10px] uppercase tracking-[0.3em] mb-2">Timeline</p>
+                <p className="text-primary font-bold text-[10px] uppercase tracking-[0.3em] mb-2">
+                  Timeline
+                </p>
                 <div className="flex items-center gap-4">
                   <div
-                    onClick={() => window.innerWidth < 768 && setIsMobileCalendarOpen(true)}
+                    onClick={() =>
+                      window.innerWidth < 768 && setIsMobileCalendarOpen(true)
+                    }
                     className="group flex items-center gap-2 md:pointer-events-none cursor-pointer active:opacity-70 transition-opacity"
                   >
                     <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter italic">
-                      {date ? format(date, 'MMMM d, yyyy') : '...'}
+                      {date ? format(date, "MMMM d, yyyy") : "..."}
                     </h2>
                     <ChevronDown className="w-6 h-6 text-zinc-300 md:hidden group-hover:text-primary transition-colors" />
                   </div>
@@ -396,12 +426,17 @@ export default function Dashboard() {
                 variant="outline"
                 size="icon"
                 onClick={toggleVoiceInput}
-                className={`rounded-full w-12 h-12 md:w-14 md:h-14 border-none shadow-lg transition-all ${isListening
-                  ? "bg-red-50 text-red-500 hover:bg-red-100 animate-pulse"
-                  : "bg-white dark:bg-zinc-800 text-zinc-400 hover:text-primary hover:bg-zinc-50 dark:hover:bg-zinc-700"
-                  }`}
+                className={`rounded-full w-12 h-12 md:w-14 md:h-14 border-none shadow-lg transition-all ${
+                  isListening
+                    ? "bg-red-50 text-red-500 hover:bg-red-100 animate-pulse"
+                    : "bg-white dark:bg-zinc-800 text-zinc-400 hover:text-primary hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                }`}
               >
-                {isListening ? <MicOff className="w-5 h-5 md:w-6 md:h-6" /> : <Mic className="w-5 h-5 md:w-6 md:h-6" />}
+                {isListening ? (
+                  <MicOff className="w-5 h-5 md:w-6 md:h-6" />
+                ) : (
+                  <Mic className="w-5 h-5 md:w-6 md:h-6" />
+                )}
               </Button>
 
               <Button
@@ -409,7 +444,11 @@ export default function Dashboard() {
                 disabled={!content.trim() || loading}
                 className="rounded-full w-12 h-12 md:w-14 md:h-14 p-0 bg-primary shadow-2xl shadow-primary/40 hover:scale-110 active:scale-95 transition-all"
               >
-                {loading ? <Loader2 className="animate-spin" /> : <Plus className="w-6 h-6 md:w-8 md:h-8 text-white" />}
+                {loading ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Plus className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                )}
               </Button>
             </div>
           </div>
@@ -438,18 +477,25 @@ export default function Dashboard() {
             {loading ? (
               <div className="flex flex-col items-center gap-4 py-20">
                 <Loader2 className="animate-spin text-primary w-8 h-8" />
-                <p className="text-[10px] font-bold tracking-widest text-zinc-300 uppercase">Synchronizing</p>
+                <p className="text-[10px] font-bold tracking-widest text-zinc-300 uppercase">
+                  Synchronizing
+                </p>
               </div>
             ) : tasks.length === 0 ? (
               <div className="py-20 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-900 rounded-[2.5rem]">
-                <p className="text-zinc-400 dark:text-zinc-700 text-sm italic font-light">No records for this date.</p>
+                <p className="text-zinc-400 dark:text-zinc-700 text-sm italic font-light">
+                  No records for this date.
+                </p>
               </div>
             ) : (
               <div className="grid gap-10">
                 {tasks.map((task, idx) => (
-                  <div key={task._id} className="group flex gap-8 items-start animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div
+                    key={task._id}
+                    className="group flex gap-8 items-start animate-in fade-in slide-in-from-bottom-2 duration-500"
+                  >
                     <span className="text-[10px] font-bold text-zinc-200 dark:text-zinc-800 mt-2 min-w-[30px] transition-colors group-hover:text-primary">
-                      {String(idx + 1).padStart(2, '0')}
+                      {String(idx + 1).padStart(2, "0")}
                     </span>
                     <div className="flex-1">
                       <div className="flex justify-between items-start gap-4">
@@ -460,7 +506,10 @@ export default function Dashboard() {
                           {task.tags && task.tags.length > 0 && (
                             <div className="flex flex-wrap gap-2 pt-1">
                               {task.tags.map((tag, i) => (
-                                <span key={i} className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary/10 text-primary hover:bg-primary/20 uppercase tracking-wider">
+                                <span
+                                  key={i}
+                                  className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary/10 text-primary hover:bg-primary/20 uppercase tracking-wider"
+                                >
                                   #{tag}
                                 </span>
                               ))}
@@ -492,12 +541,18 @@ export default function Dashboard() {
                   <Sparkles className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-[0.3em] opacity-80">AI Insight</h3>
-                  <p className="text-xs opacity-50 font-light">Generated Analysis</p>
+                  <h3 className="text-xs font-bold uppercase tracking-[0.3em] opacity-80">
+                    AI Insight
+                  </h3>
+                  <p className="text-xs opacity-50 font-light">
+                    Generated Analysis
+                  </p>
                 </div>
               </div>
               <div className="prose dark:prose-invert max-w-none">
-                <p className="text-lg font-light leading-relaxed whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{aiSummary}</p>
+                <p className="text-lg font-light leading-relaxed whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
+                  {aiSummary}
+                </p>
               </div>
             </div>
           )}
@@ -524,13 +579,15 @@ export default function Dashboard() {
             />
 
             <div className="mt-6 space-y-3">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Manage Tags</label>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                Manage Tags
+              </label>
               <div className="flex gap-2">
                 <Input
                   value={editNewTag}
                   onChange={(e) => setEditNewTag(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && editNewTag.trim()) {
+                    if (e.key === "Enter" && editNewTag.trim()) {
                       if (!editTags.includes(editNewTag.trim())) {
                         setEditTags([...editTags, editNewTag.trim()]);
                         setEditNewTag("");
@@ -542,7 +599,10 @@ export default function Dashboard() {
                 />
                 <Button
                   onClick={() => {
-                    if (editNewTag.trim() && !editTags.includes(editNewTag.trim())) {
+                    if (
+                      editNewTag.trim() &&
+                      !editTags.includes(editNewTag.trim())
+                    ) {
                       setEditTags([...editTags, editNewTag.trim()]);
                       setEditNewTag("");
                     }
@@ -558,10 +618,17 @@ export default function Dashboard() {
               {editTags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {editTags.map((tag, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold border-transparent bg-primary/10 text-primary uppercase tracking-wider">
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold border-transparent bg-primary/10 text-primary uppercase tracking-wider"
+                    >
                       #{tag}
                       <button
-                        onClick={() => setEditTags(prev => prev.filter((_, idx) => idx !== i))}
+                        onClick={() =>
+                          setEditTags((prev) =>
+                            prev.filter((_, idx) => idx !== i),
+                          )
+                        }
                         className="ml-1 hover:text-red-500 transition-colors"
                       >
                         <X className="w-3 h-3" />
@@ -611,21 +678,33 @@ export default function Dashboard() {
                   <ActivityCalendar
                     data={stats}
                     theme={{
-                      light: ['#d4d4d8', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
-                      dark: ['#3f3f46', '#0e4429', '#006d32', '#26a641', '#39d353'],
+                      light: [
+                        "#d4d4d8",
+                        "#9be9a8",
+                        "#40c463",
+                        "#30a14e",
+                        "#216e39",
+                      ],
+                      dark: [
+                        "#3f3f46",
+                        "#0e4429",
+                        "#006d32",
+                        "#26a641",
+                        "#39d353",
+                      ],
                     }}
                     labels={{
                       totalCount: `{{count}} tasks in ${new Date().getFullYear()}`,
                     }}
-                    colorScheme={calendarTheme === 'dark' ? 'dark' : 'light'}
+                    colorScheme={calendarTheme === "dark" ? "dark" : "light"}
                     showWeekdayLabels
                     blockSize={12}
                     blockMargin={4}
                     fontSize={11}
                     renderBlock={(block, activity) =>
                       React.cloneElement(block, {
-                        'data-tooltip-id': 'react-tooltip',
-                        'data-tooltip-html': `${activity.count} tasks on ${activity.date}`,
+                        "data-tooltip-id": "react-tooltip",
+                        "data-tooltip-html": `${activity.count} tasks on ${activity.date}`,
                       })
                     }
                   />
@@ -633,7 +712,8 @@ export default function Dashboard() {
                 </>
               ) : (
                 <div className="flex items-center justify-center h-[200px] w-full text-zinc-400 text-xs">
-                  <Loader2 className="w-6 h-6 animate-spin mr-3" /> synchronizing...
+                  <Loader2 className="w-6 h-6 animate-spin mr-3" />{" "}
+                  synchronizing...
                 </div>
               )}
             </div>
@@ -642,7 +722,10 @@ export default function Dashboard() {
       </Dialog>
 
       {/* --- MOBILE CALENDAR MODAL --- */}
-      <Dialog open={isMobileCalendarOpen} onOpenChange={setIsMobileCalendarOpen}>
+      <Dialog
+        open={isMobileCalendarOpen}
+        onOpenChange={setIsMobileCalendarOpen}
+      >
         <DialogContent className="bg-white dark:bg-zinc-950 border-none rounded-[2.5rem] p-8 w-[90vw] max-w-sm shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">
@@ -656,7 +739,12 @@ export default function Dashboard() {
             <Calendar
               mode="single"
               selected={date}
-              onSelect={(d) => { if (d) { setDate(d); setIsMobileCalendarOpen(false); } }}
+              onSelect={(d) => {
+                if (d) {
+                  setDate(d);
+                  setIsMobileCalendarOpen(false);
+                }
+              }}
               className="rounded-md border border-zinc-100 dark:border-zinc-800 p-3 shadow-inner bg-zinc-50 dark:bg-zinc-900/50"
             />
           </div>
@@ -668,6 +756,6 @@ export default function Dashboard() {
         onOpenChange={setIsAiModalOpen}
         onSummaryGenerated={handleAiSummaryGenerated}
       />
-    </div >
+    </div>
   );
 }
