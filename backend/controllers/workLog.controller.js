@@ -175,11 +175,48 @@ export const addOrUpdateLog = async (req, res) => {
 /**
  * Retrieve all work logs for the authenticated user, sorted by latest date first.
  */
+/**
+ * Retrieve all work logs for the authenticated user, sorted by latest date first.
+ * Supports pagination: ?page=1&limit=10
+ * Supports date filtering: ?date=YYYY-MM-DD
+ */
 export const getAllLogs = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { page, limit, date } = req.query;
 
-    const logs = await WorkLog.find({ userId }).sort({ date: -1 });
+    const query = { userId };
+
+    if (date) {
+      const targetDate = new Date(date);
+      const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+      query.date = { $gte: startOfDay, $lte: endOfDay };
+    }
+
+    // specific pagination
+    if (page && limit) {
+      const pageInt = parseInt(page);
+      const limitInt = parseInt(limit);
+      const skip = (pageInt - 1) * limitInt;
+
+      const logs = await WorkLog.find(query)
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limitInt);
+
+      const totalDocs = await WorkLog.countDocuments(query);
+      const totalPages = Math.ceil(totalDocs / limitInt);
+
+      return res.status(200).json({
+        logs,
+        totalPages,
+        currentPage: pageInt
+      });
+    }
+
+    // Default: all logs (legacy support)
+    const logs = await WorkLog.find(query).sort({ date: -1 });
     res.status(200).json(logs);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -2,10 +2,6 @@ import React, { useState, useEffect } from "react";
 import { format, eachDayOfInterval } from "date-fns";
 import {
   Sparkles,
-  LogOut,
-  Moon,
-  Sun,
-  Search,
   Plus,
   X,
   Loader2,
@@ -14,7 +10,7 @@ import {
 } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 import { ActivityCalendar } from "react-activity-calendar";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { useTheme } from "@/components/theme-provider";
@@ -25,7 +21,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 
-import { NavbarSearch } from "@/components/NavbarSearch";
 import { AiSummaryModal } from "@/components/AiSummaryModal";
 import api from "@/lib/api";
 
@@ -37,11 +32,40 @@ import { LogInputArea } from "@/components/dashboard/LogInputArea";
 import { LogEntryList } from "@/components/dashboard/LogEntryList";
 
 export default function Dashboard() {
-  const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
+  const { theme } = useTheme();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Initialize date from URL if present to prevent race condition
+  const dateParam = searchParams.get("date");
+  const initialDate = dateParam ? new Date(dateParam + "T00:00:00") : undefined;
 
   // Custom Hooks
-  const { date, setDate, tasks, loading, addTask, updateTask } = useWorkLogs();
+  const { date, setDate, tasks, loading, addTask, updateTask } = useWorkLogs(
+    initialDate && !isNaN(initialDate.getTime()) ? initialDate : undefined
+  );
+
+  // Sync URL -> State (Initial Load / Navigation)
+  useEffect(() => {
+    const dateParam = searchParams.get("date");
+    if (dateParam) {
+      const newDate = new Date(dateParam + "T00:00:00"); // Ensure local time approximation or use parseISO
+      if (!isNaN(newDate.getTime())) {
+        // Only update if different to avoid redundant updates?
+        // We trust URL as source of truth for navigation.
+        setDate(newDate);
+      }
+    }
+  }, [searchParams, setDate]);
+
+  // Handle Manual Date Selection (Calendar users)
+  const handleDateSelect = (newDate: Date | undefined) => {
+    if (newDate) {
+      setDate(newDate);
+      const dateStr = format(newDate, "yyyy-MM-dd");
+      setSearchParams({ date: dateStr }, { replace: true });
+    }
+  };
 
   const [content, setContent] = useState("");
   const { isListening, toggleVoiceInput } = useSpeech((text) =>
@@ -52,7 +76,6 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Array<{ date: string; count: number; level: number }>>([]);
 
   // UI States
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
@@ -133,49 +156,20 @@ export default function Dashboard() {
     setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }), 100);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/auth");
-  };
-
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans transition-colors duration-500">
 
       {/* --- NAVIGATION --- */}
-      <nav className="border-b border-zinc-200 dark:border-zinc-900 px-8 py-4 flex justify-between items-center sticky top-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md z-20">
-        <h1 className="text-xs font-bold tracking-[0.4em] uppercase select-none shrink-0">
-          WorkLog <span className="text-primary italic">AI</span>
-        </h1>
+      {/* Navigation removed - moved to Layout */}
 
-        <NavbarSearch onSelectDate={setDate} className="hidden md:block" />
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(!isSearchOpen)} className="md:hidden rounded-full w-9 h-9 text-zinc-400 hover:text-primary transition-colors">
-            <Search className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "light" ? "dark" : "light")} className="rounded-full w-9 h-9 text-zinc-400 hover:text-primary transition-colors">
-            {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-          </Button>
-          <div className="w-[1px] h-4 bg-zinc-300 dark:bg-zinc-800 mx-1" />
-          <Button variant="ghost" size="sm" onClick={handleLogout} className="text-zinc-400 hover:text-red-500 rounded-full text-[10px] font-bold tracking-widest uppercase">
-            <LogOut className="w-4 h-4" />
-          </Button>
-        </div>
-      </nav>
-
-      {/* Mobile Search Bar */}
-      {isSearchOpen && (
-        <div className="md:hidden border-b border-zinc-200 dark:border-zinc-900 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md p-4 sticky top-[73px] z-10 animate-in slide-in-from-top-2">
-          <NavbarSearch onSelectDate={(d) => { setDate(d); setIsSearchOpen(false); }} className="mx-0 max-w-none" />
-        </div>
-      )}
+      {/* Mobile Search Bar Removed - moved to Layout */}
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6 md:gap-12 p-4 md:p-8">
 
         {/* --- SIDEBAR --- */}
         <aside className="space-y-8 hidden md:block">
           <section className="bg-white dark:bg-zinc-900/40 p-4 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} className="rounded-md" />
+            <Calendar mode="single" selected={date} onSelect={handleDateSelect} className="rounded-md" />
           </section>
 
           <Card className="p-6 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-none rounded-[2.5rem] shadow-2xl">
@@ -193,7 +187,7 @@ export default function Dashboard() {
         <section className="space-y-6 md:space-y-10">
           <TimelineHeader
             date={date}
-            setDate={setDate}
+            setDate={handleDateSelect}
             onOpenActivity={() => setIsActivityModalOpen(true)}
             onExport={handleExport}
           />

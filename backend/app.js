@@ -8,10 +8,11 @@ app.use(express.json());
 
 import authRoutes from './routes/auth.routes.js';
 import worklogRoutes from './routes/worklog.routes.js';
+import tagsRoutes from './routes/tags.routes.js';
 
 app.use('/api/auth', authRoutes);
-
 app.use('/api/worklogs', worklogRoutes);
+app.use('/api/tags', tagsRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

@@ -10,8 +10,8 @@ export interface Task {
     createdAt: string;
 }
 
-export function useWorkLogs() {
-    const [date, setDate] = useState<Date | undefined>(new Date());
+export function useWorkLogs(initialDate?: Date) {
+    const [date, setDate] = useState<Date | undefined>(initialDate || new Date());
     const [tasks, setTasks] = useState<Task[]>([]);
     const [currentLogId, setCurrentLogId] = useState<string>("");
     const [loading, setLoading] = useState(false);
