@@ -13,12 +13,7 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     setupFiles: './src/tests/setup.ts',
-    server: {
-      deps: {
-        inline: ['jsdom', 'html-encoding-sniffer', 'whatwg-url', 'tr46', 'webidl-conversions'],
-      },
-    },
   },
 })
