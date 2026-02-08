@@ -378,11 +378,10 @@ export const getWorklogStats = async (req, res) => {
       const count = log.tasks.length;
       // Defines level based on task count: 0 (0), 1 (1-2), 2 (3-4), 3 (5-6), 4 (7+)
       let level = 0;
-      if (count === 0) level = 0;
-      else if (count <= 2) level = 1;
-      else if (count <= 4) level = 2;
-      else if (count <= 6) level = 3;
-      else level = 4;
+      if (count <= 2 && count > 0) level = 1;
+      else if (count <= 4 && count > 2) level = 2;
+      else if (count <= 6 && count > 4) level = 3;
+      else if (count > 6) level = 4;
 
       return {
         date: log.date.toISOString().split("T")[0],

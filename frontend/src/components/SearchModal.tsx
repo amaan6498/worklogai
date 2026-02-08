@@ -7,11 +7,13 @@ import { Dialog, DialogContent } from "./ui/dialog";
 interface SearchModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSelect: (log: any) => void;
 }
 
 export function SearchModal({ open, onOpenChange, onSelect }: SearchModalProps) {
     const [query, setQuery] = useState("");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [results, setResults] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 

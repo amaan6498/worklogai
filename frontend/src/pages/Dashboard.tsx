@@ -102,6 +102,7 @@ export default function Dashboard() {
 
         const filledData = days.map((day) => {
           const dateStr = format(day, "yyyy-MM-dd");
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const log = data.find((d: any) => d.date === dateStr);
           if (log) {
             return { date: dateStr, count: log.count, level: log.level };
@@ -133,7 +134,7 @@ export default function Dashboard() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
+    } catch {
       toast.error("Export failed");
     }
   };

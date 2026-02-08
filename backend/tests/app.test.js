@@ -1,6 +1,5 @@
 import request from 'supertest';
 import app from '../app.js'; // Adjust path if needed
-import mongoose from 'mongoose';
 
 describe('Backend API Tests', () => {
     beforeAll(async () => {

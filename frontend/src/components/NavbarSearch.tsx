@@ -10,6 +10,7 @@ interface NavbarSearchProps {
 
 export function NavbarSearch({ onSelectDate, className }: NavbarSearchProps) {
     const [query, setQuery] = useState("");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [results, setResults] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [showResults, setShowResults] = useState(false);

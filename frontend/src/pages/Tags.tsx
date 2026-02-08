@@ -50,7 +50,7 @@ export default function Tags() {
             toast.success("Tag renamed successfully");
             setIsRenameOpen(false);
             fetchTags();
-        } catch (error) {
+        } catch {
             toast.error("Rename failed");
         }
     };
@@ -63,7 +63,7 @@ export default function Tags() {
             toast.success("Tag removed from all logs");
             setIsDeleteOpen(false);
             fetchTags();
-        } catch (error) {
+        } catch {
             toast.error("Delete failed");
         }
     };

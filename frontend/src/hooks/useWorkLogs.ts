@@ -27,8 +27,7 @@ export function useWorkLogs(initialDate?: Date) {
             setTasks(fetchedTasks);
             setCurrentLogId(data._id || "");
             return fetchedTasks;
-        } catch (error) {
-            console.error("Fetch Error:", error);
+        } catch {
             if (!isBackground) {
                 setTasks([]);
                 setCurrentLogId("");
@@ -85,7 +84,7 @@ export function useWorkLogs(initialDate?: Date) {
 
             setTimeout(pollTags, 3000);
             return true; // Success
-        } catch (error) {
+        } catch {
             toast.error("Failed to save entry");
             return false; // Failure
         }
@@ -104,7 +103,7 @@ export function useWorkLogs(initialDate?: Date) {
             setTasks(data.tasks);
             toast.success("Record updated");
             return true;
-        } catch (error) {
+        } catch {
             toast.error("Update failed");
             return false;
         }

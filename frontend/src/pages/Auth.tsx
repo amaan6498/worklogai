@@ -36,6 +36,7 @@ export default function Auth() {
       localStorage.setItem("token", data.token);
       toast.success(isLogin ? "Welcome back" : "Account created successfully");
       navigate("/dashboard");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Authentication failed");
     } finally {
