@@ -1,13 +1,29 @@
-import request from 'supertest';
-import app from '../app.js'; // Adjust path if needed
+import { jest } from '@jest/globals';
+
+// Mock OpenAI before importing app
+jest.unstable_mockModule('openai', () => {
+    return {
+        default: class OpenAI {
+            constructor() {
+                this.chat = {
+                    completions: {
+                        create: jest.fn().mockResolvedValue({
+                            choices: [{ message: { content: 'Mocked summary' } }],
+                        }),
+                    },
+                };
+            }
+        },
+    };
+});
+
+// Import app and request after mocking
+const { default: app } = await import('../app.js');
+const { default: request } = await import('supertest');
 
 describe('Backend API Tests', () => {
     beforeAll(async () => {
-        // Avoid connecting to real DB in tests if possible, or use a test DB
-        // For this simple health check, we might not need DB, but app.js likely connects it.
-        // If app.js calls connectDB(), we might need to handle connection/disconnection.
-        // However, app.js usually imports connectDB but calls it in server.js, so app.js is safe?
-        // Let's check app.js again. server.js does the connection. app.js just exports app.
+        // Setup text encoder/decoder if needed for some envs, but likely fine here
     });
 
     afterAll(async () => {
