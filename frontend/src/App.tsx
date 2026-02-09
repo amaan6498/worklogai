@@ -2,9 +2,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import Dashboard from "./pages/Dashboard";
-import Feed from "./pages/Feed";
+import Feedback from "./pages/Feedback";
 import Tags from "./pages/Tags";
 import Auth from "./pages/Auth";
+import LandingPage from "./pages/LandingPage";
 import { AppLayout } from "./components/layout/AppLayout";
 
 // A simple wrapper to check if the user is logged in
@@ -23,16 +24,18 @@ function App() {
         <Routes>
           {/* Public Route: Login/Register */}
           <Route path="/auth" element={<Auth />} />
+          <Route path="/feedback" element={<Feedback />} />
 
           {/* Protected Routes wrapped in AppLayout */}
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/feed" element={<Feed />} />
             <Route path="/tags" element={<Tags />} />
           </Route>
 
-          {/* Redirect base URL to dashboard or auth */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          {/* Root Route: Landing Page or Dashboard */}
+          <Route path="/" element={
+            localStorage.getItem("token") ? <Navigate to="/dashboard" replace /> : <LandingPage />
+          } />
 
           {/* 404 handling */}
           <Route path="*" element={<div className="flex items-center justify-center h-screen font-mono opacity-50 uppercase tracking-widest text-xs">404 | Page Not Found</div>} />
