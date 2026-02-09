@@ -6,6 +6,8 @@ import limiter from './middleware/rateLimiter.js';
 
 const app = express();
 
+app.set('trust proxy', 1); // Trust the first proxy (e.g., Render, Nginx)
+
 app.use(cors());
 app.use(express.json());
 
