@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import api from "@/lib/api";
-import { useNavigate } from "react-router-dom";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,7 +49,16 @@ export default function Auth() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-zinc-50 dark:bg-zinc-950 p-6">
-      <Card className="w-full max-w-md p-8 bg-white dark:bg-zinc-900 border-none shadow-2xl rounded-3xl">
+      <Card className="w-full max-w-md p-8 bg-white dark:bg-zinc-900 border-none shadow-2xl rounded-3xl relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 left-4 md:hidden text-muted-foreground hover:text-foreground rounded-full"
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+
         <div className="text-center mb-10">
           <h1 className="text-2xl font-semibold tracking-tight uppercase tracking-widest text-xs mb-2">
             WorkLog <span className="text-primary font-bold italic lowercase text-2xl">ai</span>
