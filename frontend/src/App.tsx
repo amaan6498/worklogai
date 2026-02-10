@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import Dashboard from "./pages/Dashboard";
 import Feedback from "./pages/Feedback";
+import Feed from "./pages/Feed";
 import Tags from "./pages/Tags";
 import Auth from "./pages/Auth";
 import LandingPage from "./pages/LandingPage";
@@ -29,6 +30,7 @@ function App() {
           {/* Protected Routes wrapped in AppLayout */}
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/feed" element={<Feed />} />
             <Route path="/tags" element={<Tags />} />
           </Route>
 
