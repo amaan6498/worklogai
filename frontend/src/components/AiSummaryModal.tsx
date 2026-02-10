@@ -49,7 +49,7 @@ export function AiSummaryModal({ open, onOpenChange, onSummaryGenerated }: AiSum
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="bg-white dark:bg-zinc-950 border-none rounded-[2.5rem] p-8 max-w-md shadow-2xl">
+            <DialogContent className="bg-white dark:bg-zinc-950 border-none rounded-[2.5rem] p-8 w-[95%] max-w-md shadow-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2 flex items-center gap-2">
                         <Sparkles className="w-4 h-4" /> AI Intelligence

@@ -443,3 +443,92 @@ export const searchLogs = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+/**
+ * Get standup update (yesterday's logs or last logged day) using AI.
+ */
+export const getStandup = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 1. Try to find logs for yesterday
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const yesterdayStart = new Date(yesterday);
+    yesterdayStart.setHours(0, 0, 0, 0);
+    const yesterdayEnd = new Date(yesterday);
+    yesterdayEnd.setHours(23, 59, 59, 999);
+
+    let logs = await WorkLog.find({
+      userId,
+      date: { $gte: yesterdayStart, $lte: yesterdayEnd }
+    });
+
+    let descriptors = "Yesterday";
+    let logDate = yesterday;
+
+    // 2. If no logs yesterday, find the last logged day
+    if (logs.length === 0) {
+      const lastLog = await WorkLog.findOne({
+        userId,
+        date: { $lt: today }
+      }).sort({ date: -1 });
+
+      if (lastLog) {
+        logs = [lastLog];
+        logDate = lastLog.date;
+        descriptors = `Last logged day (${logDate.toISOString().split('T')[0]})`;
+      }
+    }
+
+    const tasks = logs.flatMap(log => log.tasks.map(t => t.content));
+    const tasksList = tasks.map(t => `- ${t}`).join("\n");
+
+    if (tasks.length === 0) {
+      return res.status(200).json({ standup: "No logs found to generate a standup." });
+    }
+
+    // 3. Generate AI Standup
+    const prompt = `Based on the following tasks completed on ${descriptors} (${logDate.toISOString().split('T')[0]}), generate a professional daily standup update.
+    
+    Tasks:
+    ${tasksList}
+
+    Format the output exactly like this:
+    
+    Yesterday:
+    - [Brief summary of key tasks]
+
+    Today:
+    - [Breif summary if mentioned in the tasks else Leave blank for user to fill]
+
+    Blockers:
+    - [Breif summary if mentioned in the tasks else None]
+
+    Keep it concise and professional. Do not add any conversational filler.`;
+
+    const modelName = process.env.HF_MODEL_ID || "meta-llama/Meta-Llama-3-8B-Instruct";
+
+    const completion = await ai.chat.completions.create({
+      model: modelName,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 256,
+      temperature: 0.7,
+    });
+
+    const standup = completion.choices[0].message.content.trim();
+
+    res.status(200).json({
+      date: logDate.toISOString().split('T')[0],
+      descriptor: descriptors,
+      standup
+    });
+
+  } catch (error) {
+    console.error("Standup Generation Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
