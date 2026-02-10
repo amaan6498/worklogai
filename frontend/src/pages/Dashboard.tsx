@@ -6,7 +6,8 @@ import {
   X,
   Loader2,
   Activity,
-  FileDown
+  FileDown,
+  Drum
 } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 import { ActivityCalendar } from "react-activity-calendar";
@@ -22,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 
 import { AiSummaryModal } from "@/components/AiSummaryModal";
+import { StandupModal } from "@/components/StandupModal";
 import api from "@/lib/api";
 
 import { useWorkLogs } from "@/hooks/useWorkLogs";
@@ -78,6 +80,7 @@ export default function Dashboard() {
   // UI States
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isStandupModalOpen, setIsStandupModalOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
 
   // Edit Modal States
@@ -178,9 +181,14 @@ export default function Dashboard() {
               <Sparkles className="w-3 h-3 mr-2 text-primary" /> Intelligence
             </h3>
             <p className="text-sm font-light leading-relaxed mb-6">Review your monthly productivity patterns using AI synthesis.</p>
-            <Button onClick={() => setIsAiModalOpen(true)} className="w-full bg-primary text-white rounded-2xl py-6 hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20">
-              Generate Insight
-            </Button>
+            <div className="flex flex-col gap-3">
+              <Button onClick={() => setIsStandupModalOpen(true)} className="w-full bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900 rounded-2xl py-6 hover:scale-[1.02] transition-transform shadow-lg">
+                Standup Builder
+              </Button>
+              <Button onClick={() => setIsAiModalOpen(true)} className="w-full bg-primary text-white rounded-2xl py-6 hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20">
+                Generate Insight
+              </Button>
+            </div>
           </Card>
         </aside>
 
@@ -203,6 +211,9 @@ export default function Dashboard() {
           />
 
           <div className="flex flex-wrap justify-end gap-2 md:hidden">
+            <Button variant="outline" onClick={() => setIsStandupModalOpen(true)} className="rounded-full px-4 md:px-6 border-zinc-300 dark:border-zinc-800 text-[10px] font-bold uppercase tracking-widest h-10 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors md:hidden flex-grow md:flex-grow-0">
+              <Drum className="w-3 h-3 mr-2 text-primary" /> Standup
+            </Button>
             <Button variant="outline" onClick={() => setIsAiModalOpen(true)} className="rounded-full px-4 md:px-6 border-zinc-300 dark:border-zinc-800 text-[10px] font-bold uppercase tracking-widest h-10 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors md:hidden flex-grow md:flex-grow-0">
               <Sparkles className="w-3 h-3 mr-2 text-primary" /> AI Insight
             </Button>
@@ -234,7 +245,7 @@ export default function Dashboard() {
 
       {/* --- EDIT MODAL --- */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="bg-white dark:bg-zinc-950 border-none rounded-[2.5rem] p-10 max-w-xl shadow-2xl">
+        <DialogContent className="bg-white dark:bg-zinc-950 border-none rounded-[2.5rem] p-10 w-[95%] max-w-xl shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">Modify Record</DialogTitle>
             <DialogDescription className="text-zinc-400 font-light italic">Update your daily progress details.</DialogDescription>
@@ -268,7 +279,7 @@ export default function Dashboard() {
 
       {/* --- ACTIVITY MODAL --- */}
       <Dialog open={isActivityModalOpen} onOpenChange={setIsActivityModalOpen}>
-        <DialogContent className="bg-white dark:bg-zinc-950 border-none rounded-[2.5rem] p-10 w-[95vw] max-w-7xl shadow-2xl overflow-y-auto max-h-[90vh]">
+        <DialogContent className="bg-white dark:bg-zinc-950 border-none rounded-[2.5rem] p-10 w-[95%] max-w-7xl shadow-2xl overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="text-[10px] font-bold uppercase tracking-[0.3em] text-green-500 mb-2 flex items-center"><Activity className="w-4 h-4 mr-2" /> Productivity Stream</DialogTitle>
             <DialogDescription className="text-zinc-400 font-light italic">A 365-day visualization of your work consistency.</DialogDescription>
@@ -289,6 +300,7 @@ export default function Dashboard() {
       </Dialog>
 
       <AiSummaryModal open={isAiModalOpen} onOpenChange={setIsAiModalOpen} onSummaryGenerated={handleAiSummaryGenerated} />
+      <StandupModal open={isStandupModalOpen} onOpenChange={setIsStandupModalOpen} />
     </div>
   );
 }
