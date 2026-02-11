@@ -43,7 +43,7 @@ export default function Dashboard() {
   const initialDate = dateParam ? new Date(dateParam + "T00:00:00") : undefined;
 
   // Custom Hooks
-  const { date, setDate, tasks, loading, addTask, updateTask } = useWorkLogs(
+  const { date, setDate, tasks, loading, addTask, updateTask, deleteTask, deletingTaskId } = useWorkLogs(
     initialDate && !isNaN(initialDate.getTime()) ? initialDate : undefined
   );
 
@@ -223,7 +223,7 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-10 py-4">
-            <LogEntryList tasks={tasks} loading={loading} onEdit={openEditModal} />
+            <LogEntryList tasks={tasks} loading={loading} onEdit={openEditModal} onDelete={(task) => deleteTask(task._id)} deletingTaskId={deletingTaskId} />
           </div>
 
           {aiSummary && (

@@ -1,14 +1,22 @@
 import { Button } from "@/components/ui/button";
-import { Loader2, Edit2 } from "lucide-react";
-import type { Task } from "@/hooks/useWorkLogs"; 
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Edit2, Trash2, Loader2 } from "lucide-react";
+import type { Task } from "@/hooks/useWorkLogs";
 
 interface LogEntryListProps {
     tasks: Task[];
     loading: boolean;
     onEdit: (task: Task) => void;
+    onDelete: (task: Task) => void;
+    deletingTaskId: string | null;
 }
 
-export function LogEntryList({ tasks, loading, onEdit }: LogEntryListProps) {
+export function LogEntryList({ tasks, loading, onEdit, onDelete, deletingTaskId }: LogEntryListProps) {
     if (loading) {
         return (
             <div className="flex flex-col items-center gap-4 py-20">
@@ -59,14 +67,40 @@ export function LogEntryList({ tasks, loading, onEdit }: LogEntryListProps) {
                                     </div>
                                 )}
                             </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => onEdit(task)}
-                                className="opacity-0 group-hover:opacity-100 rounded-full w-8 h-8 text-zinc-300 hover:text-primary transition-all"
-                            >
-                                <Edit2 className="w-3 h-3" />
-                            </Button>
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="opacity-0 group-hover:opacity-100 rounded-full w-8 h-8 text-zinc-300 hover:text-primary transition-all focus-visible:opacity-100"
+                                    >
+                                        <MoreHorizontal className="w-4 h-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-32 rounded-xl bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 p-1">
+                                    <DropdownMenuItem onClick={() => onEdit(task)} className="rounded-lg text-xs font-medium cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-800 px-3 py-2">
+                                        <Edit2 className="w-3 h-3 mr-2 text-zinc-500" />
+                                        Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onSelect={(e) => {
+                                            e.preventDefault();
+                                            onDelete(task);
+                                        }}
+                                        disabled={deletingTaskId === task._id}
+                                        className="rounded-lg text-xs font-medium cursor-pointer focus:bg-red-50 dark:focus:bg-red-900/10 text-red-600 focus:text-red-600 px-3 py-2"
+                                    >
+                                        {deletingTaskId === task._id ? (
+                                            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                                        ) : (
+                                            <Trash2 className="w-3 h-3 mr-2" />
+                                        )}
+                                        {deletingTaskId === task._id ? "Deleting..." : "Delete"}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
                         </div>
                         <div className="h-[1px] w-full bg-zinc-100 dark:bg-zinc-900 mt-6" />
                     </div>

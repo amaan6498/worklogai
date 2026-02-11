@@ -15,6 +15,7 @@ export function useWorkLogs(initialDate?: Date) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [currentLogId, setCurrentLogId] = useState<string>("");
     const [loading, setLoading] = useState(false);
+    const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
     const fetchLogs = useCallback(async (isBackground = false) => {
         if (!date) return [];
@@ -109,6 +110,30 @@ export function useWorkLogs(initialDate?: Date) {
         }
     };
 
+    const deleteTask = async (taskId: string) => {
+        if (!currentLogId || !taskId) return;
+        setDeletingTaskId(taskId);
+        try {
+            const { data } = await api.delete(`/worklogs/task/${currentLogId}/${taskId}`);
+
+            // Check if log was deleted (no tasks left)
+            if (data.deletedLogId) {
+                setTasks([]);
+                setCurrentLogId("");
+            } else {
+                setTasks(data.tasks);
+            }
+
+            toast.success("Record deleted");
+            return true;
+        } catch {
+            toast.error("Delete failed");
+            return false;
+        } finally {
+            setDeletingTaskId(null);
+        }
+    };
+
     return {
         date,
         setDate,
@@ -117,6 +142,8 @@ export function useWorkLogs(initialDate?: Date) {
         currentLogId,
         fetchLogs,
         addTask,
-        updateTask
+        updateTask,
+        deleteTask,
+        deletingTaskId
     };
 }

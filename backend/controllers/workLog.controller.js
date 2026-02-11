@@ -359,6 +359,38 @@ export const updateTask = async (req, res) => {
 };
 
 /**
+ * Delete a specific task from a work log.
+ * URL Params: logId (Document ID), taskId (Sub-document ID)
+ */
+export const deleteTask = async (req, res) => {
+  try {
+    const { logId, taskId } = req.params;
+    const userId = req.user.id;
+
+    const log = await WorkLog.findOneAndUpdate(
+      { _id: logId, userId },
+      { $pull: { tasks: { _id: taskId } } },
+      { new: true }
+    );
+
+    if (!log) {
+      return res.status(404).json({ message: "Log or task not found" });
+    }
+
+    // Optional: If tasks array is empty, maybe delete the whole log?
+    // For now, we keep the log entry even if empty, or you can choose to remove it.
+    if (log.tasks.length === 0) {
+      await WorkLog.findByIdAndDelete(logId);
+      return res.status(200).json({ message: "Log entry deleted as it has no tasks", deletedLogId: logId });
+    }
+
+    res.status(200).json(log);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
  * Get worklog stats for the heatmap (last 365 days).
  * Returns array of { date: "YYYY-MM-DD", count: number, level: number }
  */
