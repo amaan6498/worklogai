@@ -10,7 +10,8 @@ import {
     getAiSummary,
     getWorklogStats,
     searchLogs,
-    getStandup
+    getStandup,
+    deleteTask
 } from '../controllers/workLog.controller.js';
 
 const router = express.Router();
@@ -23,6 +24,7 @@ router.get("/range/", getLogsByRange);
 router.get("/ai-summary", getAiSummary);
 router.get("/summary", getSummary)
 router.put("/task/:logId/:taskId", updateTask);
+router.delete("/task/:logId/:taskId", deleteTask);
 router.post("/ai-summary", getAiSummary);
 router.get("/stats", getWorklogStats);
 router.get("/search", searchLogs);
