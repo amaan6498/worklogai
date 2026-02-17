@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 import api from "@/lib/api";
 
 export interface Task {
@@ -85,9 +86,10 @@ export function useWorkLogs(initialDate?: Date) {
 
             setTimeout(pollTags, 3000);
             return true; // Success
-        } catch {
-            toast.error("Failed to save entry");
-            return false; // Failure
+        } catch (error) {
+            const message = error instanceof AxiosError ? error.response?.data?.message : "Failed to save entry";
+            toast.error(message || "Failed to save entry");
+            return false;
         }
     };
 
@@ -104,8 +106,9 @@ export function useWorkLogs(initialDate?: Date) {
             setTasks(data.tasks);
             toast.success("Record updated");
             return true;
-        } catch {
-            toast.error("Update failed");
+        } catch (error) {
+            const message = error instanceof AxiosError ? error.response?.data?.message : "Update failed";
+            toast.error(message || "Update failed");
             return false;
         }
     };
@@ -126,8 +129,9 @@ export function useWorkLogs(initialDate?: Date) {
 
             toast.success("Record deleted");
             return true;
-        } catch {
-            toast.error("Delete failed");
+        } catch (error) {
+            const message = error instanceof AxiosError ? error.response?.data?.message : "Delete failed";
+            toast.error(message || "Delete failed");
             return false;
         } finally {
             setDeletingTaskId(null);
