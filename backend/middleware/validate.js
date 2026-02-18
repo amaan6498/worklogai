@@ -11,7 +11,7 @@ const validate = (schema) => (req, res, next) => {
         next();
     } catch (err) {
         if (err instanceof z.ZodError) {
-            let errorMessages = [];
+            let errorMessages;
 
             if (err.errors) {
                 errorMessages = err.errors.map((e) => `${e.path.join('.')}: ${e.message}`);
@@ -24,7 +24,7 @@ const validate = (schema) => (req, res, next) => {
                     } else {
                         errorMessages = [err.message];
                     }
-                } catch (e) {
+                } catch {
                     errorMessages = [err.message];
                 }
             }
