@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Loader2, AlertTriangle, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -13,6 +13,7 @@ export default function Auth() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSlowMessage, setShowSlowMessage] = useState(false);
   const navigate = useNavigate();
@@ -90,15 +91,27 @@ export default function Auth() {
               required
             />
           </div>
-          <div className="space-y-1">
+          <div className="relative">
             <Input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
-              className="bg-zinc-100 dark:bg-zinc-800 border-none h-12 rounded-xl focus-visible:ring-primary"
+              className="bg-zinc-100 dark:bg-zinc-800 border-none h-12 rounded-xl focus-visible:ring-primary pr-12"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-0 top-0 h-full w-12 flex items-center justify-center text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <Eye className="h-5 w-5" />
+              ) : (
+                <EyeOff className="h-5 w-5" />
+              )}
+            </button>
           </div>
 
           {showSlowMessage && (
