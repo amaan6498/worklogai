@@ -211,6 +211,7 @@ const LandingPage = () => {
                         <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
                         <a href="#" className="hover:text-foreground transition-colors">Terms</a>
                         <a href="#" className="hover:text-foreground transition-colors">Twitter</a>
+                        <a href="/sitemap.xml" className="hover:text-foreground transition-colors">Sitemap</a>
                     </div>
                 </div>
             </footer>
