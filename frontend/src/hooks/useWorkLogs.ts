@@ -16,6 +16,7 @@ export function useWorkLogs(initialDate?: Date) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [currentLogId, setCurrentLogId] = useState<string>("");
     const [loading, setLoading] = useState(false);
+    const [isAdding, setIsAdding] = useState(false);
     const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
     const fetchLogs = useCallback(async (isBackground = false) => {
@@ -46,6 +47,7 @@ export function useWorkLogs(initialDate?: Date) {
 
     const addTask = async (content: string) => {
         if (!content.trim()) return;
+        setIsAdding(true);
         try {
             const formattedDate = date
                 ? format(date, "yyyy-MM-dd")
@@ -90,6 +92,8 @@ export function useWorkLogs(initialDate?: Date) {
             const message = error instanceof AxiosError ? error.response?.data?.message : "Failed to save entry";
             toast.error(message || "Failed to save entry");
             return false;
+        } finally {
+            setIsAdding(false);
         }
     };
 
@@ -142,7 +146,7 @@ export function useWorkLogs(initialDate?: Date) {
         date,
         setDate,
         tasks,
-        loading,
+        loading: loading || isAdding,
         currentLogId,
         fetchLogs,
         addTask,

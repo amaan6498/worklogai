@@ -25,7 +25,8 @@ export function LogInputArea({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Record a new milestone..."
-                className="min-h-[120px] md:min-h-[160px] bg-white dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-6 md:p-8 text-lg md:text-xl resize-none placeholder:text-zinc-400 dark:placeholder:text-zinc-700 focus-visible:ring-1 focus-visible:ring-zinc-300 dark:focus-visible:ring-zinc-800 shadow-sm dark:shadow-inner"
+                disabled={loading}
+                className="min-h-[120px] md:min-h-[160px] bg-white dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-6 md:p-8 text-lg md:text-xl resize-none placeholder:text-zinc-400 dark:placeholder:text-zinc-700 focus-visible:ring-1 focus-visible:ring-zinc-300 dark:focus-visible:ring-zinc-800 shadow-sm dark:shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
             />
 
             <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 flex gap-2">
@@ -33,6 +34,7 @@ export function LogInputArea({
                     variant="outline"
                     size="icon"
                     onClick={onToggleVoice}
+                    disabled={loading}
                     className={`rounded-full w-12 h-12 md:w-14 md:h-14 border-none shadow-lg transition-all ${isListening
                             ? "bg-red-50 text-red-500 hover:bg-red-100 animate-pulse"
                             : "bg-white dark:bg-zinc-800 text-zinc-400 hover:text-primary hover:bg-zinc-50 dark:hover:bg-zinc-700"
