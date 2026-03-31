@@ -6,6 +6,7 @@ export interface StatItem {
     date: string;
     count: number;
     level: number;
+    logType?: "work" | "sick_leave" | "earned_leave" | "casual_leave";
 }
 
 export function useDashboardStats() {
@@ -26,14 +27,14 @@ export function useDashboardStats() {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const log = data.find((d: any) => d.date === dateStr);
                     if (log) {
-                        return { date: dateStr, count: log.count, level: log.level };
+                        return { date: dateStr, count: log.count, level: log.level, logType: log.logType || "work" };
                     }
-                    return { date: dateStr, count: 0, level: 0 };
+                    return { date: dateStr, count: 0, level: 0, logType: "work" };
                 });
                 setStats(filledData);
             } catch (error) {
                 console.error("Failed to fetch stats", error);
-                setStats([{ date: format(new Date(), "yyyy-MM-dd"), count: 0, level: 0 }]);
+                setStats([{ date: format(new Date(), "yyyy-MM-dd"), count: 0, level: 0, logType: "work" }]);
             } finally {
                 setLoading(false);
             }

@@ -44,7 +44,7 @@ export default function Dashboard() {
   const initialDate = dateParam ? new Date(dateParam + "T00:00:00") : undefined;
 
   // Custom Hooks
-  const { date, setDate, tasks, loading, addTask, updateTask, deleteTask, deletingTaskId } = useWorkLogs(
+  const { date, setDate, tasks, logType, loading, addTask, updateTask, deleteTask, updateLogType, deletingTaskId } = useWorkLogs(
     initialDate && !isNaN(initialDate.getTime()) ? initialDate : undefined
   );
 
@@ -166,6 +166,8 @@ export default function Dashboard() {
             onToggleVoice={toggleVoiceInput}
             onAdd={handleAddTaskWrapper}
             loading={loading}
+            logType={logType}
+            onUpdateLogType={updateLogType}
           />
 
           <div className="flex flex-wrap justify-end gap-2 md:hidden">
@@ -233,7 +235,7 @@ export default function Dashboard() {
             <div className="flex justify-start min-w-[800px]">
               {stats.length > 0 ? (
                 <>
-                  <ActivityCalendar data={stats} theme={{ light: ["#d4d4d8", "#9be9a8", "#40c463", "#30a14e", "#216e39"], dark: ["#3f3f46", "#0e4429", "#006d32", "#26a641", "#39d353"], }} labels={{ totalCount: `{{count}} tasks in ${new Date().getFullYear()}`, }} colorScheme={calendarTheme === "dark" ? "dark" : "light"} showWeekdayLabels blockSize={12} blockMargin={4} fontSize={11} renderBlock={(block, activity) => React.cloneElement(block, { "data-tooltip-id": "react-tooltip", "data-tooltip-html": `${activity.count} tasks on ${activity.date}`, })} />
+                  <ActivityCalendar data={stats} theme={{ light: ["#d4d4d8", "#9be9a8", "#40c463", "#30a14e", "#216e39"], dark: ["#3f3f46", "#0e4429", "#006d32", "#26a641", "#39d353"], }} labels={{ totalCount: `{{count}} tasks in ${new Date().getFullYear()}`, }} colorScheme={calendarTheme === "dark" ? "dark" : "light"} showWeekdayLabels blockSize={12} blockMargin={4} fontSize={11} renderBlock={(block, activity) => { const act = activity as typeof activity & { logType?: string }; return React.cloneElement(block, { "data-tooltip-id": "react-tooltip", "data-tooltip-html": act.logType && act.logType !== "work" ? `<span class="capitalize">On ${act.logType.replace('_', ' ')}</span> on ${act.date}` : `${act.count} tasks on ${act.date}`, }); }} />
                   <Tooltip id="react-tooltip" />
                 </>
               ) : (
