@@ -324,15 +324,21 @@ export const getWorklogStats = catchAsync(async (req, res) => {
   const stats = logs.map((log) => {
     const count = log.tasks.length;
     let level = 0;
-    if (count <= 2 && count > 0) level = 1;
-    else if (count <= 4 && count > 2) level = 2;
-    else if (count <= 6 && count > 4) level = 3;
-    else if (count > 6) level = 4;
+    
+    if (log.logType && log.logType !== 'work') {
+      level = 1; 
+    } else {
+      if (count <= 2 && count > 0) level = 1;
+      else if (count <= 4 && count > 2) level = 2;
+      else if (count <= 6 && count > 4) level = 3;
+      else if (count > 6) level = 4;
+    }
 
     return {
       date: log.date.toISOString().split("T")[0],
       count,
       level,
+      logType: log.logType || "work"
     };
   });
 
@@ -459,4 +465,24 @@ export const getStandup = catchAsync(async (req, res) => {
     descriptor: descriptors,
     standup
   });
+});
+
+/**
+ * Update the logType for a specific date (e.g., mark as sick leave).
+ */
+export const updateLogType = catchAsync(async (req, res) => {
+  const { date, logType } = req.body;
+  const userId = req.user.id;
+
+  const targetDate = new Date(date);
+
+  // Find the exact log for this date or create one if it doesn't exist
+  // We don't want to create empty arrays of tasks if it's just a leave, but the schema has a default [] which is fine
+  const log = await WorkLog.findOneAndUpdate(
+    { userId, date: targetDate },
+    { $set: { logType } },
+    { upsert: true, new: true }
+  );
+
+  res.status(200).json(log);
 });

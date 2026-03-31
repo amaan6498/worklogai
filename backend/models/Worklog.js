@@ -20,6 +20,12 @@ const workLogSchema = new mongoose.Schema(
         createdAt: { type: Date, default: Date.now },
       },
     ],
+
+    logType: {
+      type: String,
+      enum: ["work", "sick_leave", "earned_leave", "casual_leave"],
+      default: "work",
+    },
   },
   { timestamps: true }
 );

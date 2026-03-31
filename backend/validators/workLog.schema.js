@@ -18,6 +18,13 @@ export const updateTaskSchema = z.object({
     }),
 });
 
+export const updateLogTypeSchema = z.object({
+    body: z.object({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+        logType: z.enum(['work', 'sick_leave', 'earned_leave', 'casual_leave']),
+    }),
+});
+
 export const dateRangeSchema = z.object({
     query: z.object({
         from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'From date must be YYYY-MM-DD').optional(),

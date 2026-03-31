@@ -15,6 +15,7 @@ export function useWorkLogs(initialDate?: Date) {
     const [date, setDate] = useState<Date | undefined>(initialDate || new Date());
     const [tasks, setTasks] = useState<Task[]>([]);
     const [currentLogId, setCurrentLogId] = useState<string>("");
+    const [logType, setLogType] = useState<"work" | "sick_leave" | "earned_leave" | "casual_leave">("work");
     const [loading, setLoading] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
     const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
@@ -27,13 +28,16 @@ export function useWorkLogs(initialDate?: Date) {
             const { data } = await api.get(`/worklogs/date/${formattedDate}`);
 
             const fetchedTasks = data.tasks || [];
+            const fetchedLogType = data.logType || "work";
             setTasks(fetchedTasks);
             setCurrentLogId(data._id || "");
+            setLogType(fetchedLogType);
             return fetchedTasks;
         } catch {
             if (!isBackground) {
                 setTasks([]);
                 setCurrentLogId("");
+                setLogType("work");
             }
             return [];
         } finally {
@@ -60,6 +64,7 @@ export function useWorkLogs(initialDate?: Date) {
 
             setTasks(data.tasks);
             setCurrentLogId(data._id);
+            setLogType(data.logType || "work");
             toast.success("Record added");
 
             // Smart Polling Logic
@@ -142,16 +147,39 @@ export function useWorkLogs(initialDate?: Date) {
         }
     };
 
+    const updateLogType = async (newType: "work" | "sick_leave" | "earned_leave" | "casual_leave"): Promise<boolean> => {
+        if (!date) return false;
+        setLoading(true);
+        try {
+            const formattedDate = format(date, "yyyy-MM-dd");
+            const { data } = await api.put("/worklogs/log-type", {
+                date: formattedDate,
+                logType: newType
+            });
+            setLogType(data.logType || "work");
+            toast.success("Leave status updated");
+            return true;
+        } catch (error) {
+            const message = error instanceof AxiosError ? error.response?.data?.message : "Failed to update leave status";
+            toast.error(message || "Failed to update leave status");
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         date,
         setDate,
         tasks,
+        logType,
         loading: loading || isAdding,
         currentLogId,
         fetchLogs,
         addTask,
         updateTask,
         deleteTask,
+        updateLogType,
         deletingTaskId
     };
 }

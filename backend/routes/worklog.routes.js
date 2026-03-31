@@ -5,7 +5,8 @@ import {
     createLogSchema,
     updateTaskSchema,
     dateRangeSchema,
-    aiSummarySchema
+    aiSummarySchema,
+    updateLogTypeSchema
 } from '../validators/workLog.schema.js';
 import {
     addOrUpdateLog,
@@ -18,7 +19,8 @@ import {
     getWorklogStats,
     searchLogs,
     getStandup,
-    deleteTask
+    deleteTask,
+    updateLogType
 } from '../controllers/workLog.controller.js';
 
 const router = express.Router();
@@ -30,6 +32,7 @@ router.get("/range/", validate(dateRangeSchema), getLogsByRange);
 router.get("/ai-summary", validate(aiSummarySchema), getAiSummary);
 router.post("/ai-summary", validate(aiSummarySchema), getAiSummary); // Support POST for body-based params
 router.get("/summary", getSummary)
+router.put("/log-type", validate(updateLogTypeSchema), updateLogType);
 router.put("/task/:logId/:taskId", validate(updateTaskSchema), updateTask);
 router.delete("/task/:logId/:taskId", deleteTask);
 router.get("/stats", getWorklogStats);
