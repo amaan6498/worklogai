@@ -5,7 +5,11 @@ import type { AuthResponse, User } from "./auth.types";
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<{ message: string, email: string }>;
+  verifyOtp: (email: string, otp: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<{ message: string }>;
+  resetPassword: (email: string, otp: string, newPassword: string) => Promise<{ message: string }>;
+  resendOtp: (email: string) => Promise<{ message: string }>;
   logout: () => void;
 }
 
@@ -28,10 +32,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(data.user);
   };
 
-  const signup = async (email: string, password: string) => {
-    const { data } = await api.post<AuthResponse>("/auth/signup", {
+  const signup = async (name: string, email: string, password: string) => {
+    const { data } = await api.post<{ message: string, email: string }>("/auth/signup", {
+      name,
       email,
       password,
+    });
+    return data;
+  };
+
+  const verifyOtp = async (email: string, otp: string) => {
+    const { data } = await api.post<AuthResponse>("/auth/verify-otp", {
+      email,
+      otp,
     });
 
     localStorage.setItem("token", data.token);
@@ -39,13 +52,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(data.user);
   };
 
+  const forgotPassword = async (email: string) => {
+    const { data } = await api.post<{ message: string }>("/auth/forgot-password", { email });
+    return data;
+  };
+
+  const resetPassword = async (email: string, otp: string, newPassword: string) => {
+    const { data } = await api.post<{ message: string }>("/auth/reset-password", { email, otp, newPassword });
+    return data;
+  };
+
+  const resendOtp = async (email: string) => {
+    const { data } = await api.post<{ message: string }>("/auth/resend-otp", { email });
+    return data;
+  };
+
+
   const logout = () => {
     localStorage.clear();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, login, signup, verifyOtp, forgotPassword, resetPassword, resendOtp, logout }}>
       {children}
     </AuthContext.Provider>
   );
