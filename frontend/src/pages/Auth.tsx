@@ -10,7 +10,7 @@ import { Loader2, AlertTriangle, ArrowLeft, Eye, EyeOff } from "lucide-react";
 export default function Auth() {
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<"login" | "signup" | "verify" | "forgot" | "reset">(
-    (searchParams.get("mode") as any) || "login"
+    (searchParams.get("mode") as "login" | "signup" | "verify" | "forgot" | "reset") || "login"
   );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -57,8 +57,9 @@ export default function Auth() {
         toast.success(data.message || "Password reset successful");
         setMode("login");
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Action failed");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Action failed");
     } finally {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setLoading(false);
@@ -134,8 +135,9 @@ export default function Auth() {
                       try {
                         const { data } = await api.post("/auth/resend-otp", { email });
                         toast.success(data.message || "OTP resent");
-                      } catch (error: any) {
-                        toast.error(error.response?.data?.message || "Failed to resend OTP");
+                      } catch (error: unknown) {
+                        const err = error as { response?: { data?: { message?: string } } };
+                        toast.error(err.response?.data?.message || "Failed to resend OTP");
                       }
                     }}
                     className="text-xs text-zinc-500 hover:text-primary transition-colors"

@@ -31,8 +31,9 @@ export function VerifyOtpModal({ open, onOpenChange }: Props) {
       toast.success("Account verified successfully!");
       onOpenChange(false);
       window.location.reload(); // Hard refresh to clear the banner instantly
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Invalid OTP");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Invalid OTP");
     } finally {
       setLoading(false);
     }
@@ -44,8 +45,9 @@ export function VerifyOtpModal({ open, onOpenChange }: Props) {
     try {
       const { data } = await api.post("/auth/resend-otp", { email });
       toast.success(data.message || "OTP resent successfully");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to resend OTP");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to resend OTP");
     } finally {
       setResending(false);
     }
