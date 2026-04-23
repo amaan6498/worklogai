@@ -1,0 +1,19 @@
+feat: complete OTP-based authentication flow and fix UI/Auth issues
+
+This commit finalizes the full authentication lifecycle by fully integrating OTP-based workflows for email verification and password recovery.
+
+Backend updates:
+- Added `isVerified` and OTP-related fields to the `User` Mongoose schema.
+- Implemented `verifyOtp`, `forgotPassword`, `resetPassword`, and `resendOtp` endpoints in `auth.controller.js`.
+- Configured mail delivery via `nodemailer` inside `utils/email.js`.
+- Exposed all necessary new API routes in `auth.routes.js`.
+
+Frontend updates:
+- Refactored `Auth.tsx` to handle a multi-state authentication UI (`login`, `signup`, `verify`, `forgot`, and `reset`), inclusive of custom input layouts and password visibility toggles.
+- Expanded the `AuthContext` to expose `verifyOtp`, `forgotPassword`, `resetPassword`, and `resendOtp` mechanisms.
+- Created standalone `ForgotPassword.tsx` and `VerifyOtpModal.tsx` components.
+- Updated `AppLayout.tsx` to display verification banners or restrict features for unverified users.
+
+Other fixes & additions:
+- Included a `google*.html` file for search console verification SEO enhancements.
+- Updated `WHY_RULES.md` to establish and maintain coding guidelines.

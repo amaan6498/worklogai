@@ -5,28 +5,27 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useAuth } from "./auth.context";
 import { useNavigate } from "react-router-dom";
 
-export default function Signup() {
-  const { signup, verifyOtp } = useAuth();
+export default function ForgotPassword() {
+  const { forgotPassword, resetPassword } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [step, setStep] = useState(1);
 
-  const handleSignup = async () => {
+  const handleSendOtp = async () => {
     try {
-      await signup(name, email, password);
+      await forgotPassword(email);
       setStep(2);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleVerify = async () => {
+  const handleResetPassword = async () => {
     try {
-      await verifyOtp(email, otp);
-      navigate("/dashboard");
+      await resetPassword(email, otp, newPassword);
+      navigate("/login");
     } catch (err) {
       console.error(err);
     }
@@ -36,44 +35,49 @@ export default function Signup() {
     <div className="flex h-screen items-center justify-center">
       <Card className="w-[350px]">
         <CardHeader>
-          <CardTitle>Sign Up</CardTitle>
-          {step === 2 && <CardDescription>Enter the OTP sent to your email.</CardDescription>}
+          <CardTitle>Reset Password</CardTitle>
+          <CardDescription>
+            {step === 1 ? "Enter your email to receive a reset OTP." : "Enter the OTP and your new password."}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {step === 1 ? (
             <>
               <Input
-                placeholder="Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <Input
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <Input
-                placeholder="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <Button className="w-full" onClick={handleSignup}>
-                Create Account
+              <Button className="w-full" onClick={handleSendOtp}>
+                Send Verification Code
               </Button>
             </>
           ) : (
-             <>
+            <>
               <Input
                 placeholder="6-Digit OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
               />
-              <Button className="w-full" onClick={handleVerify}>
-                Verify & Login
+              <Input
+                placeholder="New Password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <Button className="w-full" onClick={handleResetPassword}>
+                Reset & Login
               </Button>
             </>
           )}
+          <div className="text-center mt-4">
+            <button
+              className="text-sm text-blue-500 hover:underline"
+              onClick={() => navigate("/login")}
+            >
+              Back to Login
+            </button>
+          </div>
         </CardContent>
       </Card>
     </div>
