@@ -1,4 +1,4 @@
-# WorkLog AI 🚀
+# WorkLog AI
 
 **WorkLog AI** is a smart productivity tracking application designed to help professionals log their daily activities and gain meaningful insights through AI-powered summarization.
 
