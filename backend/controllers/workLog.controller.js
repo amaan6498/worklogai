@@ -59,7 +59,7 @@ export const getAiSummary = catchAsync(async (req, res) => {
 
   prompt += `Summary:`;
 
-  const modelName = process.env.HF_MODEL_ID || "meta-llama/Meta-Llama-3-8B-Instruct";
+  const modelName = process.env.HF_MODEL_ID;
 
   const completion = await ai.chat.completions.create({
     model: modelName,
@@ -78,7 +78,7 @@ const generateTags = async (content) => {
   try {
     const prompt = `Extract 1-3 relevant tags (e.g., #Frontend, #BugFix, #Meeting) for this work log. Return ONLY the tags separated by commas, no other text.\n\nLog: "${content}"\n\nTags:`;
 
-    const modelName = process.env.HF_MODEL_ID || "meta-llama/Meta-Llama-3-8B-Instruct";
+    const modelName = process.env.HF_MODEL_ID;
 
     const completion = await ai.chat.completions.create({
       model: modelName,
@@ -449,7 +449,7 @@ export const getStandup = catchAsync(async (req, res) => {
 
   Keep it concise and professional. Do not add any conversational filler.`;
 
-  const modelName = process.env.HF_MODEL_ID || "meta-llama/Meta-Llama-3-8B-Instruct";
+  const modelName = process.env.HF_MODEL_ID;
 
   const completion = await ai.chat.completions.create({
     model: modelName,
